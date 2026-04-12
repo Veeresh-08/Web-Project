@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Smart Food Delivery System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body{
+    font-family:Arial;
+    background:linear-gradient(135deg,#ff5722,#ff9800);
+    background-image: url(pizz.jpg);
+    margin:0;
+    text-align:center;
+}
+
+.section{
+    display:none;
+    padding-top:80px;
+}
+.active{display:block;}
+
+.auth-box{
+    background:rgba(129, 120, 120, 0.95);
+    width:350px;
+    margin:auto;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+.auth-box input, textarea{
+    width:90%;
+    padding:10px;
+    margin:10px 0;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
+
+.auth-box button{
+    width:95%;
+    padding:10px;
+    background:#ff5722;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.link-btn{
+    background:none;
+    border:none;
+    color:#ff5722;
+    cursor:pointer;
+}
+
+.box{
+    background:rgba(129, 120, 120, 0.95);
+    width:90%;
+    max-width:500px;
+    margin:20px auto;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.2);
+}
+
+button{
+    padding:8px 14px;
+    margin:5px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    background:#ff5722;
+    color:white;
+}
+
+.menu-item{
+    border:1px solid #ddd;
+    padding:10px;
+    margin:10px;
+    border-radius:6px;
+}
+
+.statusBox{
+    background:#fff3e0;
+    padding:10px;
+    border-radius:8px;
+    margin-top:10px;
+}
+
+.road{
+    position:relative;
+    height:120px;
+    background:#f1f1f1;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.line{
+    position:absolute;
+    top:60px;
+    left:5%;
+    width:90%;
+    height:6px;
+    background:#ccc;
+    border-radius:5px;
+}
+
+.progress{
+    position:absolute;
+    top:60px;
+    left:5%;
+    height:6px;
+    width:0%;
+    background:#ff5722;
+    border-radius:5px;
+}
+
+.bike{
+    position:absolute;
+    top:40px;
+    left:5%;
+    font-size:30px;
+    transition:1.5s;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage" class="section active">
+<div class="auth-box">
+<h2>Customer Login</h2>
+<input id="loginUser" placeholder="Username">
+<input type="password" id="loginPass" placeholder="Password">
+<button onclick="login()">Login</button>
+<button class="link-btn" onclick="showPage('registerPage')">Don't have account? Register</button>
+<p id="loginMsg" style="color:red;"></p>
+</div>
+</div>
+
+<!-- REGISTER -->
+<div id="registerPage" class="section">
+<div class="auth-box">
+<h2>Customer Registration</h2>
+<input id="regUser" placeholder="Username">
+<input type="password" id="regPass" placeholder="Password">
+<button onclick="register()">Register</button>
+<button class="link-btn" onclick="showPage('loginPage')">Already have account? Login</button>
+<p id="regMsg" style="color:green;"></p>
+</div>
+</div>
+
+<!-- MENU -->
+<div id="menuPage" class="section">
+<div class="box">
+<h2>Food Menu</h2>
+
+<div class="menu-item">Pizza ₹200
+<button onclick="addToCart('Pizza',200)">Add</button></div>
+
+<div class="menu-item">Burger ₹150
+<button onclick="addToCart('Burger',150)">Add</button></div>
+
+<div class="menu-item">Pasta ₹180
+<button onclick="addToCart('Pasta',180)">Add</button></div>
+
+<button onclick="showPage('cartPage')">Go To Cart</button>
+<button onclick="logout()">Logout</button>
+</div>
+</div>
+
+<!-- CART -->
+<div id="cartPage" class="section">
+<div class="box">
+<h2>Your Cart</h2>
+<div id="cartItems"></div>
+<p>Total: ₹<span id="total">0</span></p>
+
+<p>Coupon: <b id="couponName">None</b></p>
+<button onclick="applyCoupon()">Apply Coupon</button>
+
+<h3>Final Amount: ₹<span id="finalAmount">0</span></h3>
+
+<h3>Delivery Address</h3>
+<textarea id="deliveryAddress" rows="3" placeholder="Enter Full Delivery Address"></textarea>
+
+<button onclick="goPayment()">Proceed To Payment</button>
+<button onclick="showPage('menuPage')">Back</button>
+</div>
+</div>
+
+<!-- PAYMENT -->
+<div id="paymentPage" class="section">
+<div class="box">
+<h2>Scan & Pay</h2>
+<img id="qrCode" width="200"><br>
+<p>Amount: ₹<span id="payAmount"></span></p>
+<p><b>Delivery Address:</b><br><span id="showAddress"></span></p>
+<button onclick="confirmPayment()">Confirm Payment</button>
+<button onclick="cancelOrder()">Cancel</button>
+</div>
+</div>
+
+<!-- TRACKING -->
+<div id="trackingPage" class="section">
+<div class="box">
+<h2>Live Order Tracking</h2>
+
+<div class="statusBox">
+Status: <b id="orderStatus">Preparing</b><br>
+Delivery Boy: <b>Rahul Sharma</b><br>
+Phone: <b>9876543210</b>
+</div>
+
+<div class="road">
+<div class="line"></div>
+<div class="progress" id="trackProgress"></div>
+<div class="bike" id="bikeIcon">🛵</div>
+</div>
+
+<p>Progress: <b><span id="progressPercent">0</span>%</b></p>
+
+<button onclick="cancelTrackingOrder()" style="background:red;">
+Cancel Order
+</button>
+
+<button onclick="showInvoice()">View Invoice</button>
+
+</div>
+</div>
+
+<!-- INVOICE -->
+<div id="invoicePage" class="section">
+<div class="box">
+<h2>Invoice</h2>
+<div id="invoiceData"></div>
+<button onclick="downloadPDF()">Download PDF</button>
+<button onclick="showPage('menuPage')">Order Again</button>
+</div>
+</div>
+
+<script>
+
+let users = JSON.parse(localStorage.getItem("users")) || [];
+let cart = [];
+let total = 0;
+let discount = 0;
+let order = null;
+let trackingInterval;
+let currentUser = "";
+
+/* Navigation */
+function showPage(id){
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+}
+
+/* Register */
+function register(){
+if(!regUser.value || !regPass.value){
+regMsg.innerText="Fill all fields!";
+return;
+}
+users.push({user:regUser.value,pass:regPass.value});
+localStorage.setItem("users",JSON.stringify(users));
+regMsg.innerText="Registered Successfully!";
+}
+
+/* Login */
+function login(){
+let valid=users.find(u=>u.user===loginUser.value && u.pass===loginPass.value);
+if(valid){
+currentUser = valid.user;
+showPage("menuPage");
+}else{
+loginMsg.innerText="Invalid Login!";
+}
+}
+
+function logout(){
+currentUser="";
+showPage("loginPage");
+}
+
+/* Cart */
+function addToCart(name,price){
+let item=cart.find(i=>i.name===name);
+if(item) item.qty++;
+else cart.push({name,price,qty:1});
+updateCart();
+}
+
+function updateCart(){
+let div=document.getElementById("cartItems");
+div.innerHTML="";
+total=0;
+
+cart.forEach((item,index)=>{
+total+=item.price*item.qty;
+div.innerHTML+=`${item.name} - ₹ ${item.price} x ${item.qty}
+<button onclick="changeQty(${index},1)">+</button>
+<button onclick="changeQty(${index},-1)">-</button><br>`;
+});
+
+document.getElementById("total").innerText=total;
+document.getElementById("finalAmount").innerText=total-discount;
+}
+
+function changeQty(index,val){
+cart[index].qty+=val;
+if(cart[index].qty<=0) cart.splice(index,1);
+updateCart();
+}
+
+/* Coupon */
+function applyCoupon(){
+let coupons=["SAVE50","FOOD30","MEGA100","OFF20"];
+let random=coupons[Math.floor(Math.random()*coupons.length)];
+discount=Math.floor(Math.random()*50)+20;
+couponName.innerText=random+" (₹ "+discount+" OFF)";
+updateCart();
+}
+
+/* Payment */
+function goPayment(){
+
+if(cart.length==0){
+alert("Cart Empty");
+return;
+}
+
+let address = deliveryAddress.value.trim();
+if(address===""){
+alert("Please enter delivery address!");
+return;
+}
+
+order={
+orderId:"ORD"+Math.floor(Math.random()*100000),
+customer:currentUser,
+address:address,
+items:JSON.parse(JSON.stringify(cart)),
+total:total,
+discount:discount,
+final:total-discount,
+date:new Date().toLocaleString(),
+status:"Paid"
+};
+
+showAddress.innerText=address;
+
+showPage("paymentPage");
+payAmount.innerText=order.final;
+qrCode.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-"+order.final;
+}
+
+function confirmPayment(){
+showPage("trackingPage");
+startTracking();
+}
+
+/* Tracking */
+function startTracking(){
+let progress=0;
+let steps=[
+{percent:25,status:"Preparing"},
+{percent:50,status:"Out for Delivery"},
+{percent:75,status:"Almost There"},
+{percent:100,status:"Delivered"}
+];
+
+let i=0;
+
+trackingInterval=setInterval(()=>{
+if(i>=steps.length){
+clearInterval(trackingInterval);
+return;
+}
+
+progress=steps[i].percent;
+trackProgress.style.width=progress+"%";
+bikeIcon.style.left=(5+progress*0.9)+"%";
+orderStatus.innerText=steps[i].status;
+progressPercent.innerText=progress;
+i++;
+},3000);
+}
+
+function cancelTrackingOrder(){
+clearInterval(trackingInterval);
+orderStatus.innerText="Cancelled";
+alert("Order Cancelled Successfully!");
+cart=[];
+discount=0;
+}
+
+/* Invoice */
+function showInvoice(){
+showPage("invoicePage");
+let div=document.getElementById("invoiceData");
+div.innerHTML="";
+
+div.innerHTML+=`Order ID: ${order.orderId}<br>`;
+div.innerHTML+=`Customer: ${order.customer}<br>`;
+div.innerHTML+=`Delivery Address: ${order.address}<br>`;
+div.innerHTML+=`Date: ${order.date}<br><br>`;
+
+order.items.forEach(item=>{
+div.innerHTML+=`${item.name} x ${item.qty} = ₹ ${item.price*item.qty}<br>`;
+});
+
+div.innerHTML+=`<br>Total: ₹ ${order.total}`;
+div.innerHTML+=`<br>Discount: ₹ ${order.discount}`;
+div.innerHTML+=`<br><b>Final Amount: ₹ ${order.final}</b>`;
+}
+
+/* PDF */
+function downloadPDF(){
+
+const { jsPDF } = window.jspdf;
+let doc = new jsPDF();
+
+doc.setFont("helvetica");
+doc.setFontSize(18);
+doc.text("SMART FOOD DELIVERY INVOICE", 30, 20);
+
+doc.setFontSize(12);
+doc.text("Order ID: " + order.orderId, 20, 35);
+doc.text("Customer: " + order.customer, 20, 43);
+doc.text("Address: " + order.address, 20, 51);
+doc.text("Date: " + order.date, 20, 59);
+
+doc.line(15, 65, 195, 65);
+
+let y = 75;
+
+// ===== Items Section =====
+doc.setFontSize(13);
+doc.text("Items Ordered:", 20, 70);
+
+doc.setFontSize(12);
+
+order.items.forEach(item => {
+
+    let subtotal = item.price * item.qty;
+
+    // REMOVE ₹ symbol to avoid encoding issue
+    let line = item.name + 
+               " | Qty: " + item.qty +
+               " | Price: Rs " + item.price +
+               " | Subtotal: Rs " + subtotal;
+
+    doc.text(line, 20, y);
+    y += 10;
+});
+
+y += 5;
+doc.line(15, y, 195, y);
+y += 12;
+
+// ===== Totals =====
+doc.text("Total Amount: Rs " + order.total, 20, y);
+y += 8;
+
+doc.text("Discount: Rs " + order.discount, 20, y);
+y += 8;
+
+doc.setFontSize(14);
+doc.text("Final Amount Paid: Rs " + order.final, 20, y);
+
+y += 20;
+doc.setFontSize(10);
+doc.text("Thank You For Ordering With Us!", 60, y);
+
+doc.save("Invoice_" + order.orderId + ".pdf");
+}
+</script>
+</body>
+</html>
